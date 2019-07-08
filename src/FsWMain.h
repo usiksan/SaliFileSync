@@ -16,7 +16,6 @@ Description
 #define FSWMAIN_H
 
 #include <QMainWindow>
-#include <QJsonArray>
 #include <QListWidget>
 #include <QTimer>
 
@@ -24,11 +23,11 @@ class FsWMain : public QMainWindow
   {
     Q_OBJECT
 
-    QString             mConfigPath; //Current config file
-    QJsonArray          mFileList;   //Watching file list
+    QString             mWorkspace;  //Current workspace file
+    bool                mDirty;
     QListWidget        *mViewList;   //Visual representation of file list
     QTimer              mTimer;      //Timer to scan files
-    int                 mIndex;
+    int                 mIndex;      //Index of scaning file
   public:
     explicit FsWMain(QWidget *parent = nullptr);
     ~FsWMain();
@@ -36,23 +35,24 @@ class FsWMain : public QMainWindow
   public slots:
     //Commands
 
-    void cmConfigNew();
-    void cmConfigOpen();
-    void cmConfigSave();
-    void cmConfigSaveAs();
-    void cmConfigExit();
+    void cmWorkspaceNew();
+    void cmWorkspaceOpen();
+    void cmWorkspaceSave();
+    void cmWorkspaceSaveAs();
+    void cmWorkspaceExit();
 
     void cmFileAppend();
     void cmFileRemove();
 
-    void onFileChanged( const QString path );
+    void onTimer();
 
   private:
-    void testFileChanged( const Q)
-    void configOpen( const QString path );
+    bool testDirty();
     void fileAppend( const QString path );
+    void testFileChanged( const QString path );
+    void workspaceOpen( const QString path );
+    void workspaceSave( const QString path );
     void fileCopy( const QString src, const QString dst, const QDateTime time );
-    void watch( bool enable );
   };
 
 #endif // FSWMAIN_H
