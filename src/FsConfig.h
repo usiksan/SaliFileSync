@@ -13,6 +13,7 @@ Description
 
 History
   08.07.2019 v0.1  created
+  08.07.2019 v0.2  completed with all functional
 */
 #ifndef FSCONFIG_H
 #define FSCONFIG_H
@@ -23,7 +24,7 @@ History
 
 //Version definition
 #define FS_VERSION_MAJOR             0
-#define FS_VERSION_MINOR             1
+#define FS_VERSION_MINOR             2
 
 //Some defaults
 #define FS_DEFAULT_WEB               "www.SaliLAB.com"

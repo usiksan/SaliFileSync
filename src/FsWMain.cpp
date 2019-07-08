@@ -18,6 +18,7 @@
 #include <QMessageBox>
 #include <QMenuBar>
 #include <QMenu>
+#include <QDebug>
 
 FsWMain::FsWMain(QWidget *parent) :
   QMainWindow(parent),
@@ -40,6 +41,7 @@ FsWMain::FsWMain(QWidget *parent) :
 
 
   mViewList = new QListWidget();
+  setCentralWidget( mViewList );
 
   workspaceOpen( s.value(SDK_LAST_FILE, QString("default" FS_CONFIG_EXTENSION ) ).toString() );
 
@@ -99,6 +101,8 @@ void FsWMain::cmWorkspaceSaveAs()
   {
   QString file = QFileDialog::getSaveFileName( this, tr("Enter name to save workspace"), mWorkspace );
   if( !file.isEmpty() ) {
+    if( !file.endsWith( QString(FS_CONFIG_EXTENSION) ) )
+      file.append( QString(FS_CONFIG_EXTENSION) );
     mWorkspace = file;
     workspaceSave( file );
     }
@@ -125,7 +129,13 @@ void FsWMain::cmFileAppend()
 
 void FsWMain::cmFileRemove()
   {
-
+  int i = mViewList->currentRow();
+  if( i >= 0 && i < mViewList->count() ) {
+    mViewList->model()->removeRow( i );
+    mDirty = true;
+    }
+  else
+    QMessageBox::warning( this, tr("Error!"), tr("No selected row to delete. Select and try again.") );
   }
 
 
@@ -166,10 +176,12 @@ void FsWMain::fileAppend(const QString path)
       return;
     if( QFileInfo(testPath).fileName() > fileName ) {
       mViewList->insertItem( i, path );
+      mDirty = true;
       return;
       }
     }
   mViewList->addItem( path );
+  mDirty = true;
   }
 
 
@@ -203,6 +215,7 @@ void FsWMain::testFileChanged(const QString path)
 
 void FsWMain::workspaceOpen(const QString path)
   {
+  qDebug() << "try open" << path;
   mWorkspace.clear();
   mViewList->clear();
   mDirty = false;
@@ -227,6 +240,9 @@ void FsWMain::workspaceOpen(const QString path)
 
 void FsWMain::workspaceSave(const QString path)
   {
+  QSettings s;
+  s.setValue( SDK_LAST_FILE, path );
+
   //Prepare json array of files to save
   QJsonArray ar;
   for( int i = 0; i < mViewList->count(); i++ )
@@ -250,14 +266,17 @@ void FsWMain::workspaceSave(const QString path)
 
 void FsWMain::fileCopy(const QString src, const QString dst, const QDateTime time)
   {
+  qDebug() << "upgraded" << dst;
   QFile is(src);
   QFile os(dst);
   if( is.open(QIODevice::ReadOnly) && os.open(QIODevice::WriteOnly) ) {
     os.write( is.readAll() );
-    os.setFileTime( time, QFileDevice::FileModificationTime );
+    os.flush();
+    os.setFileTime( time, QFileDevice::FileModificationTime ); // << time << src << os.fileTime(QFileDevice::FileModificationTime);
     os.close();
     is.close();
     }
+  //qDebug() << "closed time" << os.fileTime(QFileDevice::FileModificationTime);
   }
 
 
